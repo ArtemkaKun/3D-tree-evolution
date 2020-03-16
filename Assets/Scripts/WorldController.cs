@@ -15,8 +15,8 @@ public class WorldController : MonoBehaviour
 
     private GameObject _treePrefab;
 
-    private static List<GameObject> _trees = new List<GameObject>();
-    private static List<Vector3> _coordMap = new List<Vector3>();
+    private static readonly List<GameObject> _trees = new List<GameObject>();
+    private static readonly List<Vector3> _coordMap = new List<Vector3>();
 
     private void Awake()
     {
