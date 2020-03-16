@@ -6,6 +6,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Jobs;
+using UnityEngine.UIElements;
 
 public class CellController : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class CellController : MonoBehaviour
     [SerializeField] private int GENES_COUNT = 6;
     
     [SerializeField] private float MAX_X = 29.5f;
-    [SerializeField] private float MAX_Y = 29.5f;
+    [SerializeField] private float MAX_Z = 29.5f;
 
     private int _energy;
 
@@ -75,7 +76,7 @@ public class CellController : MonoBehaviour
 
         public void Execute()
         {
-            energy[0] = (3 - cell_lvl) * Mathf.RoundToInt(cell_y_coord + 6);
+            energy[0] = (cell_lvl) * Mathf.RoundToInt(cell_y_coord + 6);
         }
     }
 
@@ -112,14 +113,14 @@ public class CellController : MonoBehaviour
         public void Execute(int index, TransformAccess transform)
         {
             var pos = transform.position;
-            var lvl = 3;
+            var lvl = 0;
             
             for (var i = 0; i < 3; i++)
             {
                 pos += Vector3.up;
-                if (WorldController.CheckCoords(pos))
+                if (!WorldController.CheckCoords(pos))
                 {
-                    --lvl;
+                    ++lvl;
                 }
             }
             
@@ -170,10 +171,9 @@ public class CellController : MonoBehaviour
         transAccArr.Dispose();
         new_sun.Dispose();
         cell_lvl.Dispose();
-
+        
         /*RaycastHit[] hits;
         hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), 5f);
-
         if (hits.Length > 2)
         {
             _isHaveSun = false;
@@ -232,7 +232,7 @@ public class CellController : MonoBehaviour
         var obj_transform = transform;
         var new_coord = obj_transform.position + grow_direction;
 
-        if (!WorldController.CheckCoords(new_coord) && (Math.Abs(new_coord.x) <= MAX_X && Math.Abs(new_coord.z) <= MAX_Y))
+        if (!WorldController.CheckCoords(new_coord) && Math.Abs(new_coord.x) <= MAX_X && Math.Abs(new_coord.z) <= MAX_Z && new_coord.y >= 0)
         {
             var new_seed = Instantiate(_cellPrefab, obj_transform.parent);
             new_seed.name = "Cell" + WorldController.GetIndexer();
