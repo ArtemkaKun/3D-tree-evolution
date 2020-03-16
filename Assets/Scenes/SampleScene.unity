@@ -1017,7 +1017,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6fae77dde9f5064e8e74cc07e6a45e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  START_FOREST_SIZE: 1
+  START_FOREST_SIZE: 3
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -1321,7 +1321,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1880891455}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Borders
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

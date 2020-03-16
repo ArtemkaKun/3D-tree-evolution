@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.Jobs;
 
 public class CellController : MonoBehaviour
 {
@@ -42,7 +46,7 @@ public class CellController : MonoBehaviour
         _seedMaterial = Resources.Load("Materials/Seed") as Material;
         _cellPrefab = Resources.Load("Prefabs/Cell") as GameObject;
         _treePrefab = Resources.Load("Prefabs/Tree") as GameObject;
-        
+
         gameObject.GetComponent<Renderer>().material = _seedMaterial;
     }
 
@@ -60,6 +64,8 @@ public class CellController : MonoBehaviour
 
     private async Task GrowNewCell()
     {
+        await Task.Delay(100);
+        
         var new_branch = new _GrowDirection()
         {
             Up = _gene[0],
@@ -73,145 +79,31 @@ public class CellController : MonoBehaviour
         if (new_branch.Up < GENES_COUNT)
         {
             GrowOneCell(Vector3.up, new_branch.Up);
-            /*var hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), 1f);
-            if (hits.Length == 0)
-            {
-                var new_seed = Instantiate(_cellPrefab, gameObject.transform.parent);
-                new_seed.name = "Cell" + WorldController.GetIndexer();
-                WorldController.IncreaseIndexer();
-                _treeController.AddNewCell(new_seed);
-
-                var pos = transform.position;
-                new_seed.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
-
-                var cellController = new_seed.GetComponent<CellController>();
-                cellController.SetSeed();
-                cellController.SetGen(_treeController.GetGenes()[new_branch.Up]);
-                cellController.SetGenes(_treeController.GetGenes());
-
-                _isSeed = false;
-                gameObject.GetComponent<Renderer>().material = _woodMaterial;
-            }*/
         }
 
         if (new_branch.Down < GENES_COUNT)
         {
             GrowOneCell(Vector3.down, new_branch.Down);
-            /*var hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.down), 1f);
-            if (hits.Length == 0)
-            {
-                var new_seed = Instantiate(_cellPrefab, gameObject.transform.parent);
-                new_seed.name = "Cell" + WorldController.GetIndexer();
-                WorldController.IncreaseIndexer();
-                _treeController.AddNewCell(new_seed);
-
-                var pos = transform.position;
-                new_seed.transform.position = new Vector3(pos.x, pos.y - 1, pos.z);
-
-                var cellController = new_seed.GetComponent<CellController>();
-                cellController.SetSeed();
-                cellController.SetGen(_treeController.GetGenes()[new_branch.Down]);
-                cellController.SetGenes(_treeController.GetGenes());
-
-                _isSeed = false;
-                gameObject.GetComponent<Renderer>().material = _woodMaterial;
-            }*/
         }
 
         if (new_branch.Forward < GENES_COUNT)
         {
             GrowOneCell(Vector3.forward, new_branch.Forward);
-            /*var hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.forward), 1f);
-            if (hits.Length == 0)
-            {
-                var new_seed = Instantiate(_cellPrefab, gameObject.transform.parent);
-                new_seed.name = "Cell" + WorldController.GetIndexer();
-                WorldController.IncreaseIndexer();
-                _treeController.AddNewCell(new_seed);
-
-                var pos = transform.position;
-                new_seed.transform.position = new Vector3(pos.x, pos.y, pos.z + 1);
-
-                var cellController = new_seed.GetComponent<CellController>();
-                cellController.SetSeed();
-                cellController.SetGen(_treeController.GetGenes()[new_branch.Forward]);
-                cellController.SetGenes(_treeController.GetGenes());
-
-                _isSeed = false;
-                gameObject.GetComponent<Renderer>().material = _woodMaterial;
-            }*/
         }
 
         if (new_branch.Back < GENES_COUNT)
         {
             GrowOneCell(Vector3.back, new_branch.Back);
-            /*var hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.back), 1f);
-            if (hits.Length == 0)
-            {
-                var new_seed = Instantiate(_cellPrefab, gameObject.transform.parent);
-                new_seed.name = "Cell" + WorldController.GetIndexer();
-                WorldController.IncreaseIndexer();
-                _treeController.AddNewCell(new_seed);
-
-                var pos = transform.position;
-                new_seed.transform.position = new Vector3(pos.x, pos.y, pos.z - 1);
-
-                var cellController = new_seed.GetComponent<CellController>();
-                cellController.SetSeed();
-                cellController.SetGen(_treeController.GetGenes()[new_branch.Back]);
-                cellController.SetGenes(_treeController.GetGenes());
-
-                _isSeed = false;
-                gameObject.GetComponent<Renderer>().material = _woodMaterial;
-            }*/
         }
 
         if (new_branch.Left < GENES_COUNT)
         {
             GrowOneCell(Vector3.left, new_branch.Left);
-            /*var hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.left), 1f);
-            if (hits.Length == 0)
-            {
-                var new_seed = Instantiate(_cellPrefab, gameObject.transform.parent);
-                new_seed.name = "Cell" + WorldController.GetIndexer();
-                WorldController.IncreaseIndexer();
-                _treeController.AddNewCell(new_seed);
-
-                var pos = transform.position;
-                new_seed.transform.position = new Vector3(pos.x - 1, pos.y, pos.z);
-
-                var cellController = new_seed.GetComponent<CellController>();
-                cellController.SetSeed();
-                cellController.SetGen(_treeController.GetGenes()[new_branch.Left]);
-                cellController.SetGenes(_treeController.GetGenes());
-
-                _isSeed = false;
-                gameObject.GetComponent<Renderer>().material = _woodMaterial;
-            }*/
         }
 
         if (new_branch.Right < GENES_COUNT)
         {
             GrowOneCell(Vector3.right, new_branch.Right);
-            /*var hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.right), 1f);
-            if (hits.Length == 0)
-            {
-                var new_seed = Instantiate(_cellPrefab, gameObject.transform.parent);
-                new_seed.name = "Cell" + WorldController.GetIndexer();
-                WorldController.IncreaseIndexer();
-                _treeController.AddNewCell(new_seed);
-
-                var pos = transform.position;
-                new_seed.transform.position = new Vector3(pos.x + 1, pos.y, pos.z);
-
-                var cellController = new_seed.GetComponent<CellController>();
-                cellController.SetSeed();
-                cellController.SetGen(_treeController.GetGenes()[new_branch.Right]);
-                cellController.SetGenes(_treeController.GetGenes());
-
-                _isSeed = false;
-                gameObject.GetComponent<Renderer>().material = _woodMaterial;
-            }*/
         }
 
         await Task.Delay(100);
@@ -221,14 +113,27 @@ public class CellController : MonoBehaviour
     {
         var obj_transform = transform;
         
-        var hits = Physics.RaycastAll(obj_transform.position, obj_transform.TransformDirection(grow_direction), 1f);
-        if (hits.Length == 0)
+        var result = new NativeArray<RaycastHit>(1, Allocator.TempJob);
+        var ray = new NativeArray<RaycastCommand>(1, Allocator.TempJob);
+
+        ray[0] = new RaycastCommand(obj_transform.position, grow_direction, 1f);
+        
+        var handle = RaycastCommand.ScheduleBatch(ray, result, 1, default(JobHandle));
+        handle.Complete();
+        
+        var batchedHit = result[0];
+        
+        result.Dispose();
+        ray.Dispose();
+
+        //var hits = Physics.RaycastAll(obj_transform.position, obj_transform.TransformDirection(grow_direction), 1f);
+        if (batchedHit.collider == null)
         {
             var new_seed = Instantiate(_cellPrefab, obj_transform.parent);
             new_seed.name = "Cell" + WorldController.GetIndexer();
             WorldController.IncreaseIndexer();
             _treeController.AddNewCell(new_seed);
-            
+
             new_seed.transform.position = obj_transform.position + grow_direction;
 
             var cellController = new_seed.GetComponent<CellController>();
@@ -240,26 +145,109 @@ public class CellController : MonoBehaviour
             gameObject.GetComponent<Renderer>().material = _woodMaterial;
         }
     }
-    
+
+    [BurstCompile]
+    private struct JobCalcEnergy : IJob
+    {
+        public NativeArray<int> energy;
+
+        //public int cell_use_energy;
+        public int cell_lvl;
+        public int cell_y_coord;
+
+        public void Execute()
+        {
+            /*energy[0] -= cell_use_energy;*/
+            energy[0] = (3 - cell_lvl) * Mathf.RoundToInt(cell_y_coord + 6);
+        }
+    }
+
     private async Task CellCalcEnergy()
     {
         _energy -= CELL_USE_ENERGY;
 
+        /*if (_isHaveSun)
+        {*/
+        var cell_lvl = CheckSun();
+
         if (_isHaveSun)
         {
-            var cell_lvl = CheckSun();
-
-            if (_isHaveSun)
+            //_energy += (3 - cell_lvl) * Mathf.RoundToInt(transform.position.y + 6);
+            var new_energy = new NativeArray<int>(1, Allocator.TempJob);
+            var job = new JobCalcEnergy()
             {
-                _energy = (3 - cell_lvl) * Mathf.RoundToInt(transform.position.y + 6);
-            }
+                energy = new_energy,
+                cell_lvl = cell_lvl,
+                cell_y_coord = Mathf.RoundToInt(transform.position.y)
+            };
+            var handler = job.Schedule();
+            handler.Complete();
+            _energy += new_energy[0];
+            new_energy.Dispose();
         }
+        //}
 
         await Task.Delay(1);
     }
 
+    [BurstCompile]
+    private struct JobCheckSun : IJobParallelForTransform
+    {
+        public NativeArray<int> have_sun;
+        public NativeArray<int> cell_lvl;
+        public void Execute(int index, TransformAccess transform)
+        {
+            RaycastHit[] hits;
+            hits = Physics.RaycastAll(transform.position, Vector3.up, 5f);
+
+            if (hits.Length > 2)
+            {
+                have_sun[0] = 0;
+            }
+            else
+            {
+                have_sun[0] = 1;
+            }
+
+            cell_lvl[0] = hits.Length;
+        }
+    }
+    
     private int CheckSun()
     {
+        /*var new_sun = new NativeArray<int>(1, Allocator.TempJob);
+        var cell_lvl = new NativeArray<int>(1, Allocator.TempJob);
+        
+        var job = new JobCheckSun()
+        {
+            have_sun = new_sun,
+            cell_lvl = cell_lvl
+        };
+        
+        var transforms = new Transform[]
+        {
+            transform
+        };
+        
+        var transAccArr = new TransformAccessArray(transforms);
+        
+        var handler = job.Schedule(transAccArr);
+        handler.Complete();
+
+        if (new_sun[0] == 0)
+        {
+            _isHaveSun = false;
+        }
+        else
+        {
+            _isHaveSun = true;
+        }
+
+        var lvl = cell_lvl[0];
+        transAccArr.Dispose();
+        new_sun.Dispose();
+        cell_lvl.Dispose();*/
+        
         RaycastHit[] hits;
         hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), 5f);
 
@@ -323,7 +311,7 @@ public class CellController : MonoBehaviour
                 else if (transform.position.y > other.transform.position.y)
                 {
                     Destroy(gameObject);
-                } 
+                }
                 else if (Math.Abs(transform.position.y - other.transform.position.y) < 1)
                 {
                     Destroy(other.gameObject);
