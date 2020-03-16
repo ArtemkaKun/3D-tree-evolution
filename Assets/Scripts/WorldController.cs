@@ -35,7 +35,7 @@ public class WorldController : MonoBehaviour
 
     private void TreeSpawner()
     {
-        var rand_pos = Random.insideUnitSphere * 5;
+        var rand_pos = Random.insideUnitSphere * 10;
         rand_pos = new Vector3(Mathf.Round(rand_pos.x), 0, Mathf.Round(rand_pos.z));
 
         var new_tree = Instantiate(_treePrefab);

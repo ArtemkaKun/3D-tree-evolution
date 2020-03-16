@@ -11,6 +11,9 @@ public class CellController : MonoBehaviour
 {
     [SerializeField] private int CELL_USE_ENERGY = 13;
     [SerializeField] private int GENES_COUNT = 6;
+    
+    [SerializeField] private float MAX_X = 29.5f;
+    [SerializeField] private float MAX_Y = 29.5f;
 
     private int _energy;
 
@@ -100,7 +103,7 @@ public class CellController : MonoBehaviour
         await Task.Delay(1);
     }
 
-    [BurstCompile]
+    /*[BurstCompile]
     private struct JobCheckSun : IJobParallelForTransform
     {
         public NativeArray<int> have_sun;
@@ -122,7 +125,7 @@ public class CellController : MonoBehaviour
 
             cell_lvl[0] = hits.Length;
         }
-    }
+    }*/
 
     private int CheckSun()
     {
@@ -218,42 +221,25 @@ public class CellController : MonoBehaviour
     private void GrowOneCell(Vector3 grow_direction, int one_gene)
     {
         var obj_transform = transform;
+        var new_coord = obj_transform.position + grow_direction;
 
-        var result = new NativeArray<RaycastHit>(1, Allocator.TempJob);
-        var ray = new NativeArray<RaycastCommand>(1, Allocator.TempJob)
+        if (!WorldController.CheckCoords(new_coord) && (Math.Abs(new_coord.x) <= MAX_X && Math.Abs(new_coord.z) <= MAX_Y))
         {
-            [0] = new RaycastCommand(obj_transform.position, grow_direction, 1f)
-        };
-        
-        var handle = RaycastCommand.ScheduleBatch(ray, result, 1, default(JobHandle));
-        handle.Complete();
+            var new_seed = Instantiate(_cellPrefab, obj_transform.parent);
+            new_seed.name = "Cell" + WorldController.GetIndexer();
+            WorldController.IncreaseIndexer();
+            _treeController.AddNewCell(new_seed);
 
-        var batchedHit = result[0];
+            WorldController.AddCoords(new_coord);
+            new_seed.transform.position = new_coord;
 
-        result.Dispose();
-        ray.Dispose();
+            var cellController = new_seed.GetComponent<CellController>();
+            cellController.SetSeed();
+            cellController.SetGen(_treeController.GetGenes()[one_gene]);
+            cellController.SetGenes(_treeController.GetGenes());
 
-        if (batchedHit.collider == null)
-        {
-            if (!WorldController.CheckCoords(obj_transform.position + grow_direction))
-            {
-                var new_seed = Instantiate(_cellPrefab, obj_transform.parent);
-                new_seed.name = "Cell" + WorldController.GetIndexer();
-                WorldController.IncreaseIndexer();
-                _treeController.AddNewCell(new_seed);
-
-                var new_coord = obj_transform.position + grow_direction;
-                WorldController.AddCoords(new_coord);
-                new_seed.transform.position = new_coord;
-
-                var cellController = new_seed.GetComponent<CellController>();
-                cellController.SetSeed();
-                cellController.SetGen(_treeController.GetGenes()[one_gene]);
-                cellController.SetGenes(_treeController.GetGenes());
-
-                _isSeed = false;
-                gameObject.GetComponent<Renderer>().material = _woodMaterial;
-            }
+            _isSeed = false;
+            gameObject.GetComponent<Renderer>().material = _woodMaterial;
         }
     }
 
