@@ -3,4 +3,4 @@ Just try to simulate trees evolution in Unity3D. Origin idea - https://www.youtu
 
 Example of run - https://youtu.be/xJ5KzF1ajbw
 
-![](tree_evol_example.gif)
+![](tree_evol_exampl.gif)
