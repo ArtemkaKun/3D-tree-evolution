@@ -16,6 +16,7 @@ public class WorldController : MonoBehaviour
     private GameObject _treePrefab;
 
     private static List<GameObject> _trees = new List<GameObject>();
+    private static List<Vector3> _coordMap = new List<Vector3>();
 
     private void Awake()
     {
@@ -111,5 +112,20 @@ public class WorldController : MonoBehaviour
     public static int GetForestSize()
     {
         return _trees.Count;
+    }
+    
+    public static void AddCoords(Vector3 new_coord)
+    {
+        _coordMap.Add(new_coord);
+    }
+    
+    public static void RemoveCoords(Vector3 new_coord)
+    {
+        _coordMap.Remove(new_coord);
+    }
+    
+    public static bool CheckCoords(Vector3 need_coord)
+    {
+        return _coordMap.Contains(need_coord);
     }
 }

@@ -62,10 +62,116 @@ public class CellController : MonoBehaviour
         }
     }
 
+    [BurstCompile]
+    private struct JobCalcEnergy : IJob
+    {
+        public NativeArray<int> energy;
+
+        public int cell_lvl;
+        public int cell_y_coord;
+
+        public void Execute()
+        {
+            energy[0] = (3 - cell_lvl) * Mathf.RoundToInt(cell_y_coord + 6);
+        }
+    }
+
+    private async Task CellCalcEnergy()
+    {
+        _energy -= CELL_USE_ENERGY;
+
+        var cell_lvl = CheckSun();
+
+        if (_isHaveSun)
+        {
+            var new_energy = new NativeArray<int>(1, Allocator.TempJob);
+            var job = new JobCalcEnergy()
+            {
+                energy = new_energy,
+                cell_lvl = cell_lvl,
+                cell_y_coord = Mathf.RoundToInt(transform.position.y)
+            };
+            var handler = job.Schedule();
+            handler.Complete();
+            _energy += new_energy[0];
+            new_energy.Dispose();
+        }
+
+        await Task.Delay(1);
+    }
+
+    [BurstCompile]
+    private struct JobCheckSun : IJobParallelForTransform
+    {
+        public NativeArray<int> have_sun;
+        public NativeArray<int> cell_lvl;
+
+        public void Execute(int index, TransformAccess transform)
+        {
+            RaycastHit[] hits;
+            hits = Physics.RaycastAll(transform.position, Vector3.up, 5f);
+
+            if (hits.Length > 2)
+            {
+                have_sun[0] = 0;
+            }
+            else
+            {
+                have_sun[0] = 1;
+            }
+
+            cell_lvl[0] = hits.Length;
+        }
+    }
+
+    private int CheckSun()
+    {
+        /*var new_sun = new NativeArray<int>(1, Allocator.TempJob);
+        var cell_lvl = new NativeArray<int>(1, Allocator.TempJob);
+        
+        var job = new JobCheckSun()
+        {
+            have_sun = new_sun,
+            cell_lvl = cell_lvl
+        };
+        
+        var transforms = new Transform[]
+        {
+            transform
+        };
+        
+        var transAccArr = new TransformAccessArray(transforms);
+        
+        var handler = job.Schedule(transAccArr);
+        handler.Complete();
+
+        if (new_sun[0] == 0)
+        {
+            _isHaveSun = false;
+        }
+        else
+        {
+            _isHaveSun = true;
+        }
+
+        var lvl = cell_lvl[0];
+        transAccArr.Dispose();
+        new_sun.Dispose();
+        cell_lvl.Dispose();*/
+
+        RaycastHit[] hits;
+        hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), 5f);
+
+        if (hits.Length > 2)
+        {
+            _isHaveSun = false;
+        }
+
+        return hits.Length;
+    }
+
     private async Task GrowNewCell()
     {
-        await Task.Delay(100);
-        
         var new_branch = new _GrowDirection()
         {
             Up = _gene[0],
@@ -106,157 +212,49 @@ public class CellController : MonoBehaviour
             GrowOneCell(Vector3.right, new_branch.Right);
         }
 
-        await Task.Delay(100);
+        await Task.Delay(1);
     }
 
     private void GrowOneCell(Vector3 grow_direction, int one_gene)
     {
         var obj_transform = transform;
-        
-        var result = new NativeArray<RaycastHit>(1, Allocator.TempJob);
-        var ray = new NativeArray<RaycastCommand>(1, Allocator.TempJob);
 
-        ray[0] = new RaycastCommand(obj_transform.position, grow_direction, 1f);
+        var result = new NativeArray<RaycastHit>(1, Allocator.TempJob);
+        var ray = new NativeArray<RaycastCommand>(1, Allocator.TempJob)
+        {
+            [0] = new RaycastCommand(obj_transform.position, grow_direction, 1f)
+        };
         
         var handle = RaycastCommand.ScheduleBatch(ray, result, 1, default(JobHandle));
         handle.Complete();
-        
+
         var batchedHit = result[0];
-        
+
         result.Dispose();
         ray.Dispose();
 
-        //var hits = Physics.RaycastAll(obj_transform.position, obj_transform.TransformDirection(grow_direction), 1f);
         if (batchedHit.collider == null)
         {
-            var new_seed = Instantiate(_cellPrefab, obj_transform.parent);
-            new_seed.name = "Cell" + WorldController.GetIndexer();
-            WorldController.IncreaseIndexer();
-            _treeController.AddNewCell(new_seed);
-
-            new_seed.transform.position = obj_transform.position + grow_direction;
-
-            var cellController = new_seed.GetComponent<CellController>();
-            cellController.SetSeed();
-            cellController.SetGen(_treeController.GetGenes()[one_gene]);
-            cellController.SetGenes(_treeController.GetGenes());
-
-            _isSeed = false;
-            gameObject.GetComponent<Renderer>().material = _woodMaterial;
-        }
-    }
-
-    [BurstCompile]
-    private struct JobCalcEnergy : IJob
-    {
-        public NativeArray<int> energy;
-
-        //public int cell_use_energy;
-        public int cell_lvl;
-        public int cell_y_coord;
-
-        public void Execute()
-        {
-            /*energy[0] -= cell_use_energy;*/
-            energy[0] = (3 - cell_lvl) * Mathf.RoundToInt(cell_y_coord + 6);
-        }
-    }
-
-    private async Task CellCalcEnergy()
-    {
-        _energy -= CELL_USE_ENERGY;
-
-        /*if (_isHaveSun)
-        {*/
-        var cell_lvl = CheckSun();
-
-        if (_isHaveSun)
-        {
-            //_energy += (3 - cell_lvl) * Mathf.RoundToInt(transform.position.y + 6);
-            var new_energy = new NativeArray<int>(1, Allocator.TempJob);
-            var job = new JobCalcEnergy()
+            if (!WorldController.CheckCoords(obj_transform.position + grow_direction))
             {
-                energy = new_energy,
-                cell_lvl = cell_lvl,
-                cell_y_coord = Mathf.RoundToInt(transform.position.y)
-            };
-            var handler = job.Schedule();
-            handler.Complete();
-            _energy += new_energy[0];
-            new_energy.Dispose();
-        }
-        //}
+                var new_seed = Instantiate(_cellPrefab, obj_transform.parent);
+                new_seed.name = "Cell" + WorldController.GetIndexer();
+                WorldController.IncreaseIndexer();
+                _treeController.AddNewCell(new_seed);
 
-        await Task.Delay(1);
-    }
+                var new_coord = obj_transform.position + grow_direction;
+                WorldController.AddCoords(new_coord);
+                new_seed.transform.position = new_coord;
 
-    [BurstCompile]
-    private struct JobCheckSun : IJobParallelForTransform
-    {
-        public NativeArray<int> have_sun;
-        public NativeArray<int> cell_lvl;
-        public void Execute(int index, TransformAccess transform)
-        {
-            RaycastHit[] hits;
-            hits = Physics.RaycastAll(transform.position, Vector3.up, 5f);
+                var cellController = new_seed.GetComponent<CellController>();
+                cellController.SetSeed();
+                cellController.SetGen(_treeController.GetGenes()[one_gene]);
+                cellController.SetGenes(_treeController.GetGenes());
 
-            if (hits.Length > 2)
-            {
-                have_sun[0] = 0;
+                _isSeed = false;
+                gameObject.GetComponent<Renderer>().material = _woodMaterial;
             }
-            else
-            {
-                have_sun[0] = 1;
-            }
-
-            cell_lvl[0] = hits.Length;
         }
-    }
-    
-    private int CheckSun()
-    {
-        /*var new_sun = new NativeArray<int>(1, Allocator.TempJob);
-        var cell_lvl = new NativeArray<int>(1, Allocator.TempJob);
-        
-        var job = new JobCheckSun()
-        {
-            have_sun = new_sun,
-            cell_lvl = cell_lvl
-        };
-        
-        var transforms = new Transform[]
-        {
-            transform
-        };
-        
-        var transAccArr = new TransformAccessArray(transforms);
-        
-        var handler = job.Schedule(transAccArr);
-        handler.Complete();
-
-        if (new_sun[0] == 0)
-        {
-            _isHaveSun = false;
-        }
-        else
-        {
-            _isHaveSun = true;
-        }
-
-        var lvl = cell_lvl[0];
-        transAccArr.Dispose();
-        new_sun.Dispose();
-        cell_lvl.Dispose();*/
-        
-        RaycastHit[] hits;
-        hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), 5f);
-
-        if (hits.Length > 2)
-        {
-            _isHaveSun = false;
-        }
-
-        return hits.Length;
     }
 
     public int GetEnergy()
@@ -318,12 +316,6 @@ public class CellController : MonoBehaviour
                     Destroy(gameObject);
                 }
             }
-
-            /*if (!(transform.position.y > other.transform.position.y)) return;
-            if (transform.parent == null)
-            {
-                Destroy(gameObject);
-            }*/
         }
         else
         {

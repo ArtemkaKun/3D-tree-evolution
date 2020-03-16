@@ -60,7 +60,9 @@ public class TreeController : MonoBehaviour
         WorldController.IncreaseIndexer();
         _treeCells.Add(root);
 
-        root.transform.position = transform.position;
+        var new_coord = transform.position;
+        WorldController.AddCoords(new_coord);
+        root.transform.position = new_coord;
 
         var cell_controller = root.GetComponent<CellController>();
         cell_controller.SetSeed();
@@ -96,17 +98,6 @@ public class TreeController : MonoBehaviour
                 await Task.WhenAll(buffer_tree.Select(x => x.GetComponent<CellController>().CellMainLoop())
                     .ToArray());
             }
-
-            /*var job_pool = new List<Task>();
-
-            foreach (var one_cell in buffer_tree)
-            {
-                job_pool.Add(one_cell.GetComponent<CellController>().CellMainLoop());
-            }
-
-            //Debug.Log("Wait tasks Tree");
-
-            await Task.WhenAll(job_pool.ToArray());*/
         }
     }
 
@@ -123,10 +114,8 @@ public class TreeController : MonoBehaviour
         {
             if (!one_cell.GetComponent<CellController>().CheckIsSeed())
             {
-                /*_treeCells.Remove(one_cell);
-                Mutate();
-                NewTree(one_cell);*/
                 _treeCells.Remove(one_cell);
+                WorldController.RemoveCoords(one_cell.transform.position);
                 Destroy(one_cell);
             }
             else
@@ -134,8 +123,6 @@ public class TreeController : MonoBehaviour
                 _treeCells.Remove(one_cell);
                 Mutate();
                 NewTree(one_cell);
-                /*_treeCells.Remove(one_cell);
-                Destroy(one_cell);*/
             }
         }
 
@@ -161,6 +148,7 @@ public class TreeController : MonoBehaviour
     {
         one_cell.GetComponent<CellController>().SetGenes(_treeGenes);
         one_cell.transform.SetParent(null);
+        WorldController.RemoveCoords(one_cell.transform.position);
         one_cell.AddComponent<Rigidbody>();
         one_cell.GetComponent<Rigidbody>().constraints =
             RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ |
