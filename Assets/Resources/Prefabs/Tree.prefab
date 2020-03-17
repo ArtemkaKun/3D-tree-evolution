@@ -45,4 +45,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MAX_TREE_AGE: 100
   GENES_COUNT: 15
-  START_SEED_ENERGY: 600
+  START_SEED_ENERGY: 300

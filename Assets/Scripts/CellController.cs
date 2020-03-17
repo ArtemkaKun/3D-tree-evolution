@@ -139,7 +139,7 @@ public class CellController : MonoBehaviour
 
     private int CheckSun()
     {
-        var new_sun = new NativeArray<int>(1, Allocator.TempJob);
+        /*var new_sun = new NativeArray<int>(1, Allocator.TempJob);
         var cell_lvl = new NativeArray<int>(1, Allocator.TempJob);
         
         var job = new JobCheckSun()
@@ -170,16 +170,16 @@ public class CellController : MonoBehaviour
         var lvl = cell_lvl[0];
         transAccArr.Dispose();
         new_sun.Dispose();
-        cell_lvl.Dispose();
+        cell_lvl.Dispose();*/
         
-        /*RaycastHit[] hits;
-        hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), 5f);
+        RaycastHit[] hits;
+        hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), Mathf.Infinity);
         if (hits.Length > 2)
         {
             _isHaveSun = false;
-        }*/
+        }
 
-        return lvl;
+        return 3 - hits.Length;
     }
 
     private async Task GrowNewCell()
@@ -305,11 +305,11 @@ public class CellController : MonoBehaviour
                 {
                     Destroy(gameObject);
                 }
-                else if (Math.Abs(transform.position.y - other.transform.position.y) < 1)
+                /*else if (Math.Abs(transform.position.y - other.transform.position.y) < 1)
                 {
                     Destroy(other.gameObject);
                     Destroy(gameObject);
-                }
+                }*/
             }
         }
         else
