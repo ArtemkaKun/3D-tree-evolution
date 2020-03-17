@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 public class TreeController : MonoBehaviour
@@ -129,9 +132,54 @@ public class TreeController : MonoBehaviour
         _treeCells.Clear();
     }
 
+    private struct JobMutate : IJob
+    {
+        public int last_name_symbol;
+        public int GENES_COUNT;
+        public NativeArray<int> new_gene;
+        public NativeArray<int> mutable_gen;
+        public NativeArray<int> mutable_dir;
+        public void Execute()
+        {
+            var time = DateTime.Now;
+            var gene_mutate = new System.Random(time.Hour + time.Minute + time.Second + last_name_symbol);
+
+            if (gene_mutate.Next(0, 100) <= 5)
+            {
+                var max_random_enge = GENES_COUNT * 2 - 1;
+                mutable_gen[0] = gene_mutate.Next(0, GENES_COUNT - 1);
+                mutable_dir[0] = gene_mutate.Next(0, 5);
+                new_gene[0] = gene_mutate.Next(0, max_random_enge);
+                //_treeGenes[mutable_gen][mutable_dir] = gene_mutate.Next(0, max_random_enge);
+                WorldController.IncreaseGeneration();
+            }
+        }
+    }
+    
     private void Mutate()
     {
-        var time = DateTime.Now;
+        var new_gene = new NativeArray<int>(1, Allocator.TempJob);
+        var mutable_gen = new NativeArray<int>(1, Allocator.TempJob);
+        var mutable_dir = new NativeArray<int>(1, Allocator.TempJob);
+        
+        var job = new JobMutate()
+        {
+            last_name_symbol = name[name.Length - 1],
+            GENES_COUNT = GENES_COUNT,
+            new_gene = new_gene,
+            mutable_gen = mutable_gen,
+            mutable_dir = mutable_dir
+        };
+
+        var handler = job.Schedule();
+        handler.Complete();
+        _treeGenes[mutable_gen[0]][mutable_dir[0]] = new_gene[0];
+        
+        mutable_gen.Dispose();
+        mutable_dir.Dispose();
+        new_gene.Dispose();
+        
+        /*var time = DateTime.Now;
         var gene_mutate = new System.Random(time.Hour + time.Minute + time.Second + name[name.Length - 1]);
 
         if (gene_mutate.Next(0, 100) <= 15)
@@ -141,7 +189,7 @@ public class TreeController : MonoBehaviour
             var mutable_dir = gene_mutate.Next(0, 5);
             _treeGenes[mutable_gen][mutable_dir] = gene_mutate.Next(0, max_random_enge);
             WorldController.IncreaseGeneration();
-        }
+        }*/
     }
 
     private void NewTree(GameObject one_cell)
