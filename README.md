@@ -3,4 +3,8 @@ Just try to simulate trees evolution in Unity3D. Origin idea - https://www.youtu
 
 Example of run - https://youtu.be/xJ5KzF1ajbw
 
+New example of run (optimized) - https://www.youtube.com/watch?v=FoomCR0WwgU
+
+This gif only shows concept of algorithm (this is not the latest version of simulation!)
+
 ![](tree_evol_exampl.gif)
