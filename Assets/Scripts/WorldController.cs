@@ -10,11 +10,6 @@ public class WorldController : MonoBehaviour
     private static int _worldAge;
     private static int _generation;
 
-    private static GameObject _treePrefab;
-
-    private static readonly List<GameObject> _trees = new List<GameObject>();
-    private static readonly List<Vector3> _coordMap = new List<Vector3>();
-
     private static int _groundLength;
     private static int _groundWidth;
     private static int _maxTreeAge;
@@ -23,6 +18,13 @@ public class WorldController : MonoBehaviour
     private static int _cellUsage;
     private static int _startForestSize;
 
+    private static bool _isRun = true;
+    
+    private static GameObject _treePrefab;
+
+    private static readonly List<GameObject> _trees = new List<GameObject>();
+    private static readonly List<Vector3> _coordMap = new List<Vector3>();
+    
     private void Awake()
     {
         _treePrefab = Resources.Load("Prefabs/Tree") as GameObject;
@@ -57,18 +59,23 @@ public class WorldController : MonoBehaviour
     {
         while (_worldAge < 1000)
         {
-            ++_worldAge;
-
-            var buffer_forest = new List<GameObject>();
-
-            foreach (var one_tree in _trees)
+            if (_isRun)
             {
-                buffer_forest.Add(one_tree);
+                ++_worldAge;
+
+                var buffer_forest = new List<GameObject>();
+
+                foreach (var one_tree in _trees)
+                {
+                    buffer_forest.Add(one_tree);
+                }
+
+                await Task.WhenAll(buffer_forest.Select(x => x.GetComponent<TreeController>().TreeMainLoop())
+                    .ToArray());
+
+                await Task.Delay(1);
             }
-
-            await Task.WhenAll(buffer_forest.Select(x => x.GetComponent<TreeController>().TreeMainLoop())
-                .ToArray());
-
+            
             await Task.Delay(1);
         }
     }
@@ -167,7 +174,7 @@ public class WorldController : MonoBehaviour
     {
         return _groundLength / 2 - 0.5f;
     }
-    
+
     public static float GetMaxZ()
     {
         return _groundWidth / 2 - 0.5f;
@@ -177,19 +184,24 @@ public class WorldController : MonoBehaviour
     {
         return _maxTreeAge;
     }
-    
+
     public static int GetStartEnergy()
     {
         return _startEnergy;
     }
-    
+
     public static int GetGenesCount()
     {
         return _genesCount;
     }
-    
+
     public static int GetCellUsage()
     {
         return _cellUsage;
+    }
+    
+    public static void SwitchRun()
+    {
+        _isRun = !_isRun;
     }
 }
