@@ -10,13 +10,13 @@ using UnityEngine.UIElements;
 
 public class CellController : MonoBehaviour
 {
-    [SerializeField] private int CELL_USE_ENERGY = 13;
+    private int CELL_USE_ENERGY;
 
     private int _energy;
     private int GENES_COUNT;
     
-    [SerializeField] private float MAX_X;
-    [SerializeField] private float MAX_Z;
+    private float MAX_X;
+    private float MAX_Z;
 
     private int[] _gene;
 
@@ -53,7 +53,10 @@ public class CellController : MonoBehaviour
 
         gameObject.GetComponent<Renderer>().material = _seedMaterial;
 
-        GENES_COUNT = _treeController.GENES_COUNT;
+        CELL_USE_ENERGY = WorldController.GetCellUsage();
+        GENES_COUNT = WorldController.GetGenesCount();
+        MAX_X = WorldController.GetMaxX();
+        MAX_Z = WorldController.GetMaxZ();
     }
 
     public async Task CellMainLoop()

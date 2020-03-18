@@ -10,9 +10,10 @@ using Random = System.Random;
 
 public class TreeController : MonoBehaviour
 {
-    [SerializeField] private int MAX_TREE_AGE = 100;
-    [SerializeField] private int START_SEED_ENERGY = 300;
-
+    private int MAX_TREE_AGE;
+    private int START_SEED_ENERGY;
+    private int GENES_COUNT;
+    
     private int _treeAge;
     private int _treeEnergy;
 
@@ -21,11 +22,12 @@ public class TreeController : MonoBehaviour
     private List<int[]> _treeGenes = new List<int[]>();
     private readonly List<GameObject> _treeCells = new List<GameObject>();
 
-    public int GENES_COUNT = 6;
-
     private void Awake()
     {
         _cellPrefab = Resources.Load("Prefabs/Cell") as GameObject;
+        MAX_TREE_AGE = WorldController.GetMaxAge();
+        START_SEED_ENERGY = WorldController.GetStartEnergy();
+        GENES_COUNT = WorldController.GetGenesCount();
     }
 
     public void Start()

@@ -6,25 +6,33 @@ using Random = UnityEngine.Random;
 
 public class WorldController : MonoBehaviour
 {
-    [SerializeField] private int START_FOREST_SIZE = 12;
-
     private static int _indexer;
     private static int _worldAge;
     private static int _generation;
 
-    private GameObject _treePrefab;
+    private static GameObject _treePrefab;
 
     private static readonly List<GameObject> _trees = new List<GameObject>();
     private static readonly List<Vector3> _coordMap = new List<Vector3>();
+
+    private static int _groundLength;
+    private static int _groundWidth;
+    private static int _maxTreeAge;
+    private static int _startEnergy;
+    private static int _genesCount;
+    private static int _cellUsage;
+    private static int _startForestSize;
 
     private void Awake()
     {
         _treePrefab = Resources.Load("Prefabs/Tree") as GameObject;
     }
 
-    private async Task Start()
+    public async Task StartWorld()
     {
-        for (var i = 0; i < START_FOREST_SIZE; i++)
+        transform.localScale = new Vector3(_groundLength, 1, _groundWidth);
+
+        for (var i = 0; i < _startForestSize; i++)
         {
             TreeSpawner();
         }
@@ -32,9 +40,9 @@ public class WorldController : MonoBehaviour
         await MainLoop();
     }
 
-    private void TreeSpawner()
+    private static void TreeSpawner()
     {
-        var rand_pos = Random.insideUnitSphere * 15;
+        var rand_pos = Random.insideUnitSphere * _startForestSize / 2;
         rand_pos = new Vector3(Mathf.Round(rand_pos.x), 0, Mathf.Round(rand_pos.z));
 
         var new_tree = Instantiate(_treePrefab);
@@ -118,5 +126,70 @@ public class WorldController : MonoBehaviour
     public static bool CheckCoords(Vector3 need_coord)
     {
         return _coordMap.Contains(need_coord);
+    }
+
+    public static void SetGroundLength(int new_data)
+    {
+        _groundLength = new_data;
+    }
+
+    public static void SetGroundWidth(int new_data)
+    {
+        _groundWidth = new_data;
+    }
+
+    public static void SetMaxAge(int new_data)
+    {
+        _maxTreeAge = new_data;
+    }
+
+    public static void SetStartEnergy(int new_data)
+    {
+        _startEnergy = new_data;
+    }
+
+    public static void SetGenesCount(int new_data)
+    {
+        _genesCount = new_data;
+    }
+
+    public static void SetCellUsage(int new_data)
+    {
+        _cellUsage = new_data;
+    }
+
+    public static void SetStartForestSize(int new_data)
+    {
+        _startForestSize = new_data;
+    }
+
+    public static float GetMaxX()
+    {
+        return _groundLength / 2 - 0.5f;
+    }
+    
+    public static float GetMaxZ()
+    {
+        return _groundWidth / 2 - 0.5f;
+    }
+
+    public static int GetMaxAge()
+    {
+        return _maxTreeAge;
+    }
+    
+    public static int GetStartEnergy()
+    {
+        return _startEnergy;
+    }
+    
+    public static int GetGenesCount()
+    {
+        return _genesCount;
+    }
+    
+    public static int GetCellUsage()
+    {
+        return _cellUsage;
     }
 }
