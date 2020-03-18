@@ -6,11 +6,11 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
+using Random = System.Random;
 
 public class TreeController : MonoBehaviour
 {
     [SerializeField] private int MAX_TREE_AGE = 100;
-    [SerializeField] private int GENES_COUNT = 6;
     [SerializeField] private int START_SEED_ENERGY = 300;
 
     private int _treeAge;
@@ -20,6 +20,8 @@ public class TreeController : MonoBehaviour
 
     private List<int[]> _treeGenes = new List<int[]>();
     private readonly List<GameObject> _treeCells = new List<GameObject>();
+
+    public int GENES_COUNT = 6;
 
     private void Awake()
     {
@@ -40,7 +42,7 @@ public class TreeController : MonoBehaviour
     {
         var time = DateTime.Now;
         var random =
-            new System.Random(time.Hour + time.Minute + time.Second + time.Millisecond + name[name.Length - 1]);
+            new Random(time.Hour + time.Minute + time.Second + time.Millisecond + name[name.Length - 1]);
 
         var max_random_edge = GENES_COUNT * 2 - 1;
 

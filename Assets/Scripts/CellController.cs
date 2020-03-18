@@ -11,12 +11,12 @@ using UnityEngine.UIElements;
 public class CellController : MonoBehaviour
 {
     [SerializeField] private int CELL_USE_ENERGY = 13;
-    [SerializeField] private int GENES_COUNT = 6;
-    
-    [SerializeField] private float MAX_X = 29.5f;
-    [SerializeField] private float MAX_Z = 29.5f;
 
     private int _energy;
+    private int GENES_COUNT;
+    
+    [SerializeField] private float MAX_X;
+    [SerializeField] private float MAX_Z;
 
     private int[] _gene;
 
@@ -52,6 +52,8 @@ public class CellController : MonoBehaviour
         _treePrefab = Resources.Load("Prefabs/Tree") as GameObject;
 
         gameObject.GetComponent<Renderer>().material = _seedMaterial;
+
+        GENES_COUNT = _treeController.GENES_COUNT;
     }
 
     public async Task CellMainLoop()

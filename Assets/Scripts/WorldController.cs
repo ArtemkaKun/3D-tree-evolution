@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -59,16 +58,8 @@ public class WorldController : MonoBehaviour
                 buffer_forest.Add(one_tree);
             }
 
-            try
-            {
-                await Task.WhenAll(buffer_forest.Select(x => x.GetComponent<TreeController>().TreeMainLoop())
-                    .ToArray());
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-                throw;
-            }
+            await Task.WhenAll(buffer_forest.Select(x => x.GetComponent<TreeController>().TreeMainLoop())
+                .ToArray());
 
             await Task.Delay(1);
         }
@@ -113,17 +104,17 @@ public class WorldController : MonoBehaviour
     {
         return _trees.Count;
     }
-    
+
     public static void AddCoords(Vector3 new_coord)
     {
         _coordMap.Add(new_coord);
     }
-    
+
     public static void RemoveCoords(Vector3 new_coord)
     {
         _coordMap.Remove(new_coord);
     }
-    
+
     public static bool CheckCoords(Vector3 need_coord)
     {
         return _coordMap.Contains(need_coord);

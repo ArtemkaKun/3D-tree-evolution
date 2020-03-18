@@ -107,6 +107,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CELL_USE_ENERGY: 13
-  GENES_COUNT: 15
-  MAX_X: 15.5
-  MAX_Z: 15.5
+  MAX_X: 14.5
+  MAX_Z: 14.5
