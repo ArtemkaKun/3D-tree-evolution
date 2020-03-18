@@ -9,6 +9,7 @@ public class SimulationController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             WorldController.SwitchRun();
+            CameraController.SwitchMove();
         }
     }
 }
