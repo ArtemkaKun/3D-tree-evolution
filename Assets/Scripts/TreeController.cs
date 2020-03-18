@@ -139,6 +139,7 @@ public class TreeController : MonoBehaviour
         public NativeArray<int> new_gene;
         public NativeArray<int> mutable_gen;
         public NativeArray<int> mutable_dir;
+
         public void Execute()
         {
             var time = DateTime.Now;
@@ -155,13 +156,13 @@ public class TreeController : MonoBehaviour
             }
         }
     }
-    
+
     private void Mutate()
     {
         var new_gene = new NativeArray<int>(1, Allocator.TempJob);
         var mutable_gen = new NativeArray<int>(1, Allocator.TempJob);
         var mutable_dir = new NativeArray<int>(1, Allocator.TempJob);
-        
+
         var job = new JobMutate()
         {
             last_name_symbol = name[name.Length - 1],
@@ -174,11 +175,11 @@ public class TreeController : MonoBehaviour
         var handler = job.Schedule();
         handler.Complete();
         _treeGenes[mutable_gen[0]][mutable_dir[0]] = new_gene[0];
-        
+
         mutable_gen.Dispose();
         mutable_dir.Dispose();
         new_gene.Dispose();
-        
+
         /*var time = DateTime.Now;
         var gene_mutate = new System.Random(time.Hour + time.Minute + time.Second + name[name.Length - 1]);
 
@@ -207,18 +208,9 @@ public class TreeController : MonoBehaviour
     {
         _treeEnergy = 0;
 
-        try
+        foreach (var one_tree in _treeCells)
         {
-            foreach (var one_tree in _treeCells)
-            {
-                _treeEnergy += one_tree.GetComponent<CellController>().GetEnergy();
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e);
-            Debug.Log(_treeCells.Count);
-            throw;
+            _treeEnergy += one_tree.GetComponent<CellController>().GetEnergy();
         }
     }
 
