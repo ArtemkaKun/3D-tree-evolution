@@ -19,7 +19,7 @@ public class CellController : MonoBehaviour
     private float MAX_Z;
 
     private int[] _gene;
-
+    
     private bool _isHaveSun = true;
     private bool _isSeed;
 
@@ -84,7 +84,7 @@ public class CellController : MonoBehaviour
             energy[0] = (cell_lvl) * Mathf.RoundToInt(cell_y_coord + 6);
         }
     }
-
+    
     private async Task CellCalcEnergy()
     {
         _energy -= CELL_USE_ENERGY;
@@ -109,16 +109,79 @@ public class CellController : MonoBehaviour
         await Task.Delay(1);
     }
 
+    private struct JobCheckSun : IJobParallelForTransform
+    {
+        public NativeArray<int> have_sun;
+        public NativeArray<int> cell_lvl;
+
+        public void Execute(int index, TransformAccess transform)
+        {
+            var pos = transform.position;
+            var lvl = 0;
+
+            for (var i = 0; i < 3; i++)
+            {
+                pos += Vector3.up;
+                if (!WorldController.CheckCoords(pos))
+                {
+                    ++lvl;
+                }
+            }
+
+            if (lvl == 0)
+            {
+                have_sun[0] = 0;
+            }
+            else
+            {
+                have_sun[0] = 1;
+            }
+
+            cell_lvl[0] = lvl;
+        }
+    }
+    
     private int CheckSun()
     {
-        RaycastHit[] hits;
-        hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), Mathf.Infinity);
-        if (hits.Length > 2)
+        var new_sun = new NativeArray<int>(1, Allocator.TempJob);
+        var cell_lvl = new NativeArray<int>(1, Allocator.TempJob);
+        
+        var job = new JobCheckSun()
+        {
+            have_sun = new_sun,
+            cell_lvl = cell_lvl
+        };
+        
+        var transforms = new Transform[]
+        {
+            transform
+        };
+        
+        var transAccArr = new TransformAccessArray(transforms);
+        
+        var handler = job.Schedule(transAccArr);
+        handler.Complete();
+        if (new_sun[0] == 0)
         {
             _isHaveSun = false;
         }
+        else
+        {
+            _isHaveSun = true;
+        }
+        var lvl = cell_lvl[0];
+        transAccArr.Dispose();
+        new_sun.Dispose();
+        cell_lvl.Dispose();
+        
+        /*RaycastHit[] hits;
+        hits = Physics.RaycastAll(transform.position, Vector3.up, Mathf.Infinity);
+        if (hits.Length > 2)
+        {
+            _isHaveSun = false;
+        }*/
 
-        return 3 - hits.Length;
+        return lvl;
     }
 
     private async Task GrowNewCell()
