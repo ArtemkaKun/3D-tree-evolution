@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Burst;
 using Unity.Collections;
@@ -118,14 +119,29 @@ public class CellController : MonoBehaviour
         {
             var pos = transform.position;
             var lvl = 0;
+            var above = 0;
 
-            for (var i = 0; i < 3; i++)
+            for (var i = 0; i < 10; i++)
             {
                 pos += Vector3.up;
                 if (!WorldController.CheckCoords(pos))
                 {
                     ++lvl;
                 }
+                else
+                {
+                    ++above;
+                }
+            }
+
+            if (above >= 3)
+            {
+                lvl = 0;
+            }
+
+            if (lvl > 3)
+            {
+                lvl = 3;
             }
 
             if (lvl == 0)
@@ -138,6 +154,7 @@ public class CellController : MonoBehaviour
             }
 
             cell_lvl[0] = lvl;
+            
         }
     }
     
@@ -145,10 +162,10 @@ public class CellController : MonoBehaviour
     {
         var new_sun = new NativeArray<int>(1, Allocator.TempJob);
         var cell_lvl = new NativeArray<int>(1, Allocator.TempJob);
-        
+
         var job = new JobCheckSun()
         {
-            have_sun = new_sun,
+           have_sun = new_sun,
             cell_lvl = cell_lvl
         };
         
@@ -161,6 +178,9 @@ public class CellController : MonoBehaviour
         
         var handler = job.Schedule(transAccArr);
         handler.Complete();
+        
+        transAccArr.Dispose();
+        
         if (new_sun[0] == 0)
         {
             _isHaveSun = false;
@@ -169,10 +189,12 @@ public class CellController : MonoBehaviour
         {
             _isHaveSun = true;
         }
-        var lvl = cell_lvl[0];
-        transAccArr.Dispose();
+        
         new_sun.Dispose();
+        
+        var lvl = cell_lvl[0];
         cell_lvl.Dispose();
+        
         
         /*RaycastHit[] hits;
         hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), Mathf.Infinity);

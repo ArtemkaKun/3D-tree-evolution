@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Unity.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -24,7 +25,7 @@ public class WorldController : MonoBehaviour
 
     private static readonly List<GameObject> _trees = new List<GameObject>();
     private static readonly List<Vector3> _coordMap = new List<Vector3>();
-    
+
     private void Awake()
     {
         _treePrefab = Resources.Load("Prefabs/Tree") as GameObject;
