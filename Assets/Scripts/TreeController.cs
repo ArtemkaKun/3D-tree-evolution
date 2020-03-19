@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -182,18 +181,6 @@ public class TreeController : MonoBehaviour
         mutable_gen.Dispose();
         mutable_dir.Dispose();
         new_gene.Dispose();
-
-        /*var time = DateTime.Now;
-        var gene_mutate = new System.Random(time.Hour + time.Minute + time.Second + name[name.Length - 1]);
-
-        if (gene_mutate.Next(0, 100) <= 15)
-        {
-            var max_random_enge = GENES_COUNT * 2 - 1;
-            var mutable_gen = gene_mutate.Next(0, GENES_COUNT - 1);
-            var mutable_dir = gene_mutate.Next(0, 5);
-            _treeGenes[mutable_gen][mutable_dir] = gene_mutate.Next(0, max_random_enge);
-            WorldController.IncreaseGeneration();
-        }*/
     }
 
     private void NewTree(GameObject one_cell)
@@ -231,9 +218,5 @@ public class TreeController : MonoBehaviour
     {
         _treeGenes = new_genes;
     }
-
-    private void OnDestroy()
-    {
-        _treeGenes.Clear();
-    }
+    
 }

@@ -6,7 +6,6 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Jobs;
-using UnityEngine.UIElements;
 
 public class CellController : MonoBehaviour
 {
@@ -109,16 +108,80 @@ public class CellController : MonoBehaviour
         await Task.Delay(1);
     }
 
+    //Unstable
+    private struct JobCheckSun : IJobParallelForTransform
+    {
+        public NativeArray<int> have_sun;
+        public NativeArray<int> cell_lvl;
+
+        public void Execute(int index, TransformAccess transform)
+        {
+            var pos = transform.position;
+            var lvl = 0;
+
+            for (var i = 0; i < 3; i++)
+            {
+                pos += Vector3.up;
+                if (!WorldController.CheckCoords(pos))
+                {
+                    ++lvl;
+                }
+            }
+
+            if (lvl == 0)
+            {
+                have_sun[0] = 0;
+            }
+            else
+            {
+                have_sun[0] = 1;
+            }
+
+            cell_lvl[0] = lvl;
+        }
+    }
+    
     private int CheckSun()
     {
-        RaycastHit[] hits;
+        var new_sun = new NativeArray<int>(1, Allocator.TempJob);
+        var cell_lvl = new NativeArray<int>(1, Allocator.TempJob);
+        
+        var job = new JobCheckSun()
+        {
+            have_sun = new_sun,
+            cell_lvl = cell_lvl
+        };
+        
+        var transforms = new Transform[]
+        {
+            transform
+        };
+        
+        var transAccArr = new TransformAccessArray(transforms);
+        
+        var handler = job.Schedule(transAccArr);
+        handler.Complete();
+        if (new_sun[0] == 0)
+        {
+            _isHaveSun = false;
+        }
+        else
+        {
+            _isHaveSun = true;
+        }
+        var lvl = cell_lvl[0];
+        transAccArr.Dispose();
+        new_sun.Dispose();
+        cell_lvl.Dispose();
+        
+        /*RaycastHit[] hits;
         hits = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.up), Mathf.Infinity);
         if (hits.Length > 2)
         {
             _isHaveSun = false;
-        }
+        }*/
 
-        return 3 - hits.Length;
+        return lvl;
     }
 
     private async Task GrowNewCell()
@@ -258,10 +321,5 @@ public class CellController : MonoBehaviour
             new_tree.GetComponent<TreeController>().SetGenes(_genes);
             Destroy(gameObject);
         }
-    }
-
-    private void OnDestroy()
-    {
-        _genes.Clear();
     }
 }

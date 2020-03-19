@@ -57,7 +57,7 @@ public class WorldController : MonoBehaviour
 
     private async Task MainLoop()
     {
-        while (_worldAge < 1000)
+        while (_worldAge < 10000)
         {
             if (_isRun)
             {
