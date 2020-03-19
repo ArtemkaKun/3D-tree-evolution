@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SimulationController : MonoBehaviour
 {
@@ -11,5 +9,11 @@ public class SimulationController : MonoBehaviour
             WorldController.SwitchRun();
             CameraController.SwitchMove();
         }
+        
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+
     }
 }
