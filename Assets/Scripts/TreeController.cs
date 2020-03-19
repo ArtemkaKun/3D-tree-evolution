@@ -147,7 +147,7 @@ public class TreeController : MonoBehaviour
         public void Execute()
         {
             var time = DateTime.Now;
-            var gene_mutate = new System.Random(time.Hour + time.Minute + time.Second + last_name_symbol);
+            var gene_mutate = new Random(time.Hour + time.Minute + time.Second + last_name_symbol);
 
             if (gene_mutate.Next(0, 100) <= 5)
             {
@@ -155,7 +155,6 @@ public class TreeController : MonoBehaviour
                 mutable_gen[0] = gene_mutate.Next(0, GENES_COUNT - 1);
                 mutable_dir[0] = gene_mutate.Next(0, 5);
                 new_gene[0] = gene_mutate.Next(0, max_random_enge);
-                //_treeGenes[mutable_gen][mutable_dir] = gene_mutate.Next(0, max_random_enge);
                 WorldController.IncreaseGeneration();
             }
         }
@@ -231,5 +230,10 @@ public class TreeController : MonoBehaviour
     public void SetGenes(List<int[]> new_genes)
     {
         _treeGenes = new_genes;
+    }
+
+    private void OnDestroy()
+    {
+        _treeGenes.Clear();
     }
 }
