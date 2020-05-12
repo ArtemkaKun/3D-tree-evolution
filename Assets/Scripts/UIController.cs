@@ -22,6 +22,11 @@ public class UIController : MonoBehaviour
 
     void Update()
     {
+        SetGenerationStatusLabels();
+    }
+
+    private void SetGenerationStatusLabels()
+    {
         _yearsText.SetText("Year " + WorldController.GetYear());
         _generationText.SetText("Generation " + WorldController.GetGeneration());
         _countText.SetText("Trees " + WorldController.GetForestSize());
@@ -35,17 +40,22 @@ public class UIController : MonoBehaviour
             int.Parse(_startEnergy.text) != 0 && int.Parse(_genesCount.text) != 0 && int.Parse(_cellUsage.text) != 0 &&
             int.Parse(_startForestSize.text) != 0)
         {
-            WorldController.SetGroundLength(int.Parse(_coordX.text));
-            WorldController.SetGroundWidth(int.Parse(_coordZ.text));
-            WorldController.SetMaxAge(int.Parse(_treeAge.text));
-            WorldController.SetGenesCount(int.Parse(_genesCount.text));
-            WorldController.SetStartEnergy(int.Parse(_startEnergy.text));
-            WorldController.SetCellUsage(int.Parse(_cellUsage.text));
-            WorldController.SetStartForestSize(int.Parse(_startForestSize.text));
+            SetWorldParams();
 
             _startCanvas.SetActive(false);
             _ingameCanvas.SetActive(true);
             _worldController.GetComponent<WorldController>().StartWorld();
         }
+    }
+
+    private void SetWorldParams()
+    {
+        WorldController.SetGroundLength(int.Parse(_coordX.text));
+        WorldController.SetGroundWidth(int.Parse(_coordZ.text));
+        WorldController.SetMaxAge(int.Parse(_treeAge.text));
+        WorldController.SetGenesCount(int.Parse(_genesCount.text));
+        WorldController.SetStartEnergy(int.Parse(_startEnergy.text));
+        WorldController.SetCellUsage(int.Parse(_cellUsage.text));
+        WorldController.SetStartForestSize(int.Parse(_startForestSize.text));
     }
 }
