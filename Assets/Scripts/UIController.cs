@@ -1,4 +1,5 @@
-﻿using Components.World;
+﻿using System;
+using Components.World;
 using TMPro;
 using UnityEngine;
 
@@ -20,16 +21,26 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameObject startCanvas;
     [SerializeField] private GameObject ingameCanvas;
 
-    void Update()
+    private void Awake()
     {
-        SetGenerationStatusLabels();
+        World.OnWorldAgeChange += UpdateYearText;
+        World.OnTreeGenerationChange += UpdateGenerationText;
+        World.OnForestSizeChange += UpdateForestSizeText;
     }
 
-    private void SetGenerationStatusLabels()
+    private void UpdateYearText()
     {
-        yearsText.SetText("Year " + WorldController.GetYear());
-        generationText.SetText("Generation " + WorldController.GetGeneration());
-        countText.SetText("Trees " + WorldController.GetForestSize());
+        yearsText.SetText("Year " + World.SimulationStatus.WorldAge);
+    }
+    
+    private void UpdateGenerationText()
+    {
+        generationText.SetText("Generation " + World.SimulationStatus.TreeGeneration);
+    }
+    
+    private void UpdateForestSizeText()
+    {
+        countText.SetText("Trees " + World.SimulationStatus.ForestSize);
     }
 
     public void OnStartClick()
@@ -44,13 +55,16 @@ public class UIController : MonoBehaviour
     private void SetWorldParams()
     {
         World.GroundDimensions = int.Parse(groundSize.text);
-        World.SimulationStatus = new SimulationStatus(default, default, true);
+        
+        var startForestSizeValue = int.Parse(startForestSize.text);
+        World.SimulationStatus = new SimulationStatus(1, 1, startForestSizeValue,true);
+        
         World.SimulationConstants = new SimulationConstants (
             int.Parse(treeMaxAge.text),
             int.Parse(startTreeEnergy.text),
             int.Parse(treeGenesCount.text),
             int.Parse(cellEnergyUsage.text),
-            int.Parse(startForestSize.text)
+            startForestSizeValue
             );
     }
 }

@@ -1,4 +1,5 @@
-﻿using Systems.World;
+﻿using System;
+using Systems.World;
 using Components.World;
 using Unity.Transforms;
 using UnityEngine;
@@ -10,7 +11,11 @@ public class World : MonoBehaviour
     public static SimulationStatus SimulationStatus { get; set; }
     public static SimulationConstants SimulationConstants { get; set; }
     public static SimulationResources SimulationResources { get; set; }
-
+    
+    public static Action OnWorldAgeChange;
+    public static Action OnTreeGenerationChange;
+    public static Action OnForestSizeChange;
+    
     [SerializeField] private int worldYearInSeconds;
 
     public void StartSimulation()
@@ -18,7 +23,9 @@ public class World : MonoBehaviour
         transform.localScale = new Vector3(GroundDimensions, 1, GroundDimensions);
 
         SpawnStartForest();
-
+        
+        OnWorldAgeChange?.Invoke();
+        
         MainLoop();
     }
 
@@ -28,6 +35,9 @@ public class World : MonoBehaviour
         {
             TreeSpawner();
         }
+        
+        OnTreeGenerationChange?.Invoke();
+        OnForestSizeChange?.Invoke();
     }
 
     private static void TreeSpawner()
@@ -59,6 +69,8 @@ public class World : MonoBehaviour
             var simulationStatus = SimulationStatus;
             ++simulationStatus.WorldAge;
             SimulationStatus = simulationStatus;
+            
+            OnWorldAgeChange?.Invoke();
         }
     }
 
