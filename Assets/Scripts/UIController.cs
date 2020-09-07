@@ -1,24 +1,24 @@
-﻿using TMPro;
+﻿using Components.World;
+using TMPro;
 using UnityEngine;
 
 public class UIController : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI _yearsText;
-    [SerializeField] private TextMeshProUGUI _generationText;
-    [SerializeField] private TextMeshProUGUI _countText;
+    [SerializeField] private TextMeshProUGUI yearsText;
+    [SerializeField] private TextMeshProUGUI generationText;
+    [SerializeField] private TextMeshProUGUI countText;
 
-    [SerializeField] private TMP_InputField _coordX;
-    [SerializeField] private TMP_InputField _coordZ;
-    [SerializeField] private TMP_InputField _treeAge;
-    [SerializeField] private TMP_InputField _startEnergy;
-    [SerializeField] private TMP_InputField _genesCount;
-    [SerializeField] private TMP_InputField _cellUsage;
-    [SerializeField] private TMP_InputField _startForestSize;
+    [SerializeField] private TMP_InputField groundSize;
+    [SerializeField] private TMP_InputField treeMaxAge;
+    [SerializeField] private TMP_InputField startTreeEnergy;
+    [SerializeField] private TMP_InputField treeGenesCount;
+    [SerializeField] private TMP_InputField cellEnergyUsage;
+    [SerializeField] private TMP_InputField startForestSize;
 
-    [SerializeField] private GameObject _worldController;
+    [SerializeField] private World world;
 
-    [SerializeField] private GameObject _startCanvas;
-    [SerializeField] private GameObject _ingameCanvas;
+    [SerializeField] private GameObject startCanvas;
+    [SerializeField] private GameObject ingameCanvas;
 
     void Update()
     {
@@ -27,35 +27,30 @@ public class UIController : MonoBehaviour
 
     private void SetGenerationStatusLabels()
     {
-        _yearsText.SetText("Year " + WorldController.GetYear());
-        _generationText.SetText("Generation " + WorldController.GetGeneration());
-        _countText.SetText("Trees " + WorldController.GetForestSize());
+        yearsText.SetText("Year " + WorldController.GetYear());
+        generationText.SetText("Generation " + WorldController.GetGeneration());
+        countText.SetText("Trees " + WorldController.GetForestSize());
     }
 
     public void OnStartClick()
     {
-        if (_coordX.text != "" && _coordZ.text != "" && _treeAge.text != "" && _startEnergy.text != "" &&
-            _genesCount.text != "" && _cellUsage.text != "" && _startForestSize.text != "" &&
-            int.Parse(_coordX.text) != 0 && int.Parse(_coordZ.text) != 0 && int.Parse(_treeAge.text) != 0 &&
-            int.Parse(_startEnergy.text) != 0 && int.Parse(_genesCount.text) != 0 && int.Parse(_cellUsage.text) != 0 &&
-            int.Parse(_startForestSize.text) != 0)
-        {
-            SetWorldParams();
+        SetWorldParams();
 
-            _startCanvas.SetActive(false);
-            _ingameCanvas.SetActive(true);
-            _worldController.GetComponent<WorldController>().StartWorld();
-        }
+        startCanvas.SetActive(false);
+        ingameCanvas.SetActive(true);
+        world.GetComponent<World>().StartSimulation();
     }
 
     private void SetWorldParams()
     {
-        WorldController.SetGroundLength(int.Parse(_coordX.text));
-        WorldController.SetGroundWidth(int.Parse(_coordZ.text));
-        WorldController.SetMaxAge(int.Parse(_treeAge.text));
-        WorldController.SetGenesCount(int.Parse(_genesCount.text));
-        WorldController.SetStartEnergy(int.Parse(_startEnergy.text));
-        WorldController.SetCellUsage(int.Parse(_cellUsage.text));
-        WorldController.SetStartForestSize(int.Parse(_startForestSize.text));
+        World.GroundDimensions = int.Parse(groundSize.text);
+        World.SimulationStatus = new SimulationStatus(default, default, true);
+        World.SimulationConstants = new SimulationConstants (
+            int.Parse(treeMaxAge.text),
+            int.Parse(startTreeEnergy.text),
+            int.Parse(treeGenesCount.text),
+            int.Parse(cellEnergyUsage.text),
+            int.Parse(startForestSize.text)
+            );
     }
 }
