@@ -1,6 +1,7 @@
 ﻿using System;
 using Systems.World;
 using Components.World;
+using UniRx;
 using Unity.Transforms;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -15,9 +16,16 @@ public class World : MonoBehaviour
     public static Action OnWorldAgeChange;
     public static Action OnTreeGenerationChange;
     public static Action OnForestSizeChange;
-    
-    [SerializeField] private int worldYearInSeconds;
 
+    public static void IncreaseWorldAge()
+    {
+        var simulationStatus = SimulationStatus;
+        ++simulationStatus.WorldAge;
+        SimulationStatus = simulationStatus;
+            
+        OnWorldAgeChange?.Invoke();
+    }
+    
     public void StartSimulation()
     {
         transform.localScale = new Vector3(GroundDimensions, 1, GroundDimensions);
@@ -26,7 +34,7 @@ public class World : MonoBehaviour
         
         OnWorldAgeChange?.Invoke();
         
-        MainLoop();
+        ToggleSimulationStatus();
     }
 
     private void SpawnStartForest()
@@ -55,27 +63,25 @@ public class World : MonoBehaviour
         });
     }
 
-    private void MainLoop()
-    {
-        var timeBuffer = 0f;
-        while (SimulationStatus.WorldAge < 10000)
-        {
-            timeBuffer += Time.deltaTime;
-
-            if (!SimulationStatus.IsSimulationRun || timeBuffer < worldYearInSeconds) return;
-
-            timeBuffer = 0f;
-
-            var simulationStatus = SimulationStatus;
-            ++simulationStatus.WorldAge;
-            SimulationStatus = simulationStatus;
-            
-            OnWorldAgeChange?.Invoke();
-        }
-    }
-
     private void Awake()
     {
-        GetComponent<WorldStartDataHandler>().InitializeResources();
+        var test = GetComponent<WorldStartDataHandler>();
+        test.InitializeResources();
+        
+        InitializeSimulationControllers();
+    }
+
+    private void InitializeSimulationControllers()
+    {
+        Observable.EveryUpdate()
+            .Where(_ => Input.GetKeyDown(KeyCode.Space))
+            .Subscribe(_ => ToggleSimulationStatus());
+    }
+
+    private void ToggleSimulationStatus()
+    {
+        var simulationStatus = SimulationStatus;
+        simulationStatus.IsSimulationRun = !simulationStatus.IsSimulationRun;
+        SimulationStatus = simulationStatus;
     }
 }

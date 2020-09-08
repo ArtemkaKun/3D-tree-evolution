@@ -57,7 +57,7 @@ public class UIController : MonoBehaviour
         World.GroundDimensions = int.Parse(groundSize.text);
         
         var startForestSizeValue = int.Parse(startForestSize.text);
-        World.SimulationStatus = new SimulationStatus(1, 1, startForestSizeValue,true);
+        World.SimulationStatus = new SimulationStatus(1, 1, startForestSizeValue,false);
         
         World.SimulationConstants = new SimulationConstants (
             int.Parse(treeMaxAge.text),
