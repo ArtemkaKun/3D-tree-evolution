@@ -2256,7 +2256,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e86ba037088dd6741965dc24ea810dad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldYearInSeconds: 1
+  treePrefab: {fileID: 7699783669129981338, guid: 8faab28616f79e04a8aeb1dbe32b1f00,
+    type: 3}
+  treeCellPrefab: {fileID: 470273154131166373, guid: bfe246e247d7ca3458ae21262d58f918,
+    type: 3}
 --- !u!114 &850423242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2269,7 +2272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ffb15f81cfa474e88c4c12d17842e43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  treePrefab: {fileID: 6965950608073741075, guid: 8faab28616f79e04a8aeb1dbe32b1f00,
+  treePrefab: {fileID: 7699783669129981338, guid: 8faab28616f79e04a8aeb1dbe32b1f00,
     type: 3}
   treeCellPrefab: {fileID: 470273154131166373, guid: bfe246e247d7ca3458ae21262d58f918,
     type: 3}

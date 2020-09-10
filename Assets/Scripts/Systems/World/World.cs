@@ -1,4 +1,5 @@
 ﻿using System;
+using Systems.Tree;
 using Systems.World;
 using Components.World;
 using UniRx;
@@ -41,32 +42,16 @@ public class World : MonoBehaviour
     {
         for (var i = 0; i < SimulationConstants.StartForestSize; i++)
         {
-            TreeSpawner();
+            Systems.Tree.TreeController.InitializeNewTree();
         }
         
         OnTreeGenerationChange?.Invoke();
         OnForestSizeChange?.Invoke();
     }
 
-    private static void TreeSpawner()
-    {
-        var randomPos = Random.insideUnitSphere * GroundDimensions / 2;
-        randomPos = new Vector3(Mathf.Round(randomPos.x), 0, Mathf.Round(randomPos.z));
-
-        var entityManager = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-
-        var newTree = entityManager.Instantiate(SimulationResources.TreePrefab);
-
-        entityManager.SetComponentData(newTree, new Translation
-        {
-            Value = randomPos
-        });
-    }
-
     private void Awake()
     {
-        var test = GetComponent<WorldStartDataHandler>();
-        test.InitializeResources();
+        GetComponent<WorldStartDataHandler>().InitializeResources();
         
         InitializeSimulationControllers();
     }
