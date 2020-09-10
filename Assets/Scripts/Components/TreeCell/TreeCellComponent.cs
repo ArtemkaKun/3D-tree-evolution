@@ -3,10 +3,11 @@ using Unity.Entities;
 
 namespace Components.TreeCell
 {
+    [GenerateAuthoringComponent]
     public struct TreeCellComponent : IComponentData
     {
-        public bool isSeed;
-        public int energy;
-        public GrowGenes genes;
+        public bool IsSeed;
+        public int Energy;
+        public GrowGenes Genes;
     }
 }

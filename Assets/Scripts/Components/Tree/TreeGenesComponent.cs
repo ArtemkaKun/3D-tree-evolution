@@ -4,7 +4,7 @@ namespace Components.Tree
 {
     public struct TreeGenesComponent : IBufferElementData
     {
-        public static implicit operator GrowGenes (TreeGenesComponent e)
+        public static implicit operator GrowGenes(TreeGenesComponent e)
         {
             return e.Value;
         }
@@ -13,7 +13,7 @@ namespace Components.Tree
         {
             return new TreeGenesComponent { Value = e };
         }
-        
+
         public GrowGenes Value;
     }
 }

@@ -2,12 +2,12 @@
 {
     public struct GrowGenes
     {
-        public int Up { get; }
-        public int Down { get; }
-        public int Forward { get; }
-        public int Back { get; }
-        public int Left { get; }
-        public int Right { get; }
+        public int Up;
+        public int Down;
+        public int Forward;
+        public int Back;
+        public int Left;
+        public int Right;
 
         public GrowGenes(int up, int down, int forward, int back, int left, int right)
         {

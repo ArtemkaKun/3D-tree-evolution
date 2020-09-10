@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Components.Tree;
 using Components.TreeCell;
 using Unity.Entities;
@@ -52,15 +51,15 @@ namespace Systems.Tree
             var time = DateTime.Now;
             var random = new Random(time.Hour + time.Minute + time.Second + time.Millisecond + tree.Index);
 
-            var maxRandomEdge = global::World.SimulationConstants.TreeGenesCount * 2 - 1;
+            var maxRandomEdge = global::World.SimulationConstants.TreeGenesCount * 2;
             
             var genes = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.GetBuffer<TreeGenesComponent>(tree);
             
             for (var gene = 0; gene < global::World.SimulationConstants.TreeGenesCount; ++gene)
             {
                 var randGene = new GrowGenes(
-                    random.Next(0, maxRandomEdge), random.Next(0, maxRandomEdge), random.Next(0, maxRandomEdge),
-                    random.Next(0, maxRandomEdge), random.Next(0, maxRandomEdge), random.Next(0, maxRandomEdge)
+                    random.Next(maxRandomEdge), random.Next(maxRandomEdge), random.Next(maxRandomEdge),
+                    random.Next(maxRandomEdge), random.Next(maxRandomEdge), random.Next(maxRandomEdge)
                 );
 
                 genes.Add(randGene);
@@ -82,9 +81,9 @@ namespace Systems.Tree
 
             entityManager.SetComponentData(root, new TreeCellComponent
             {
-                isSeed = true,
-                energy = global::World.SimulationConstants.StartSeedEnergy,
-                genes = entityManager.GetBuffer<TreeGenesComponent>(tree)[0]
+                IsSeed = true,
+                Energy = global::World.SimulationConstants.StartSeedEnergy,
+                Genes = entityManager.GetBuffer<TreeGenesComponent>(tree)[0]
             });
         }
     }
