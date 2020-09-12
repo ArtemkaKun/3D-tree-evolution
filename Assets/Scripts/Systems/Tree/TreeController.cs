@@ -8,7 +8,7 @@ using Random = System.Random;
 
 namespace Systems.Tree
 {
-    public class TreeController
+    public static class TreeController
     {
         public static void InitializeNewTree()
         {
@@ -26,7 +26,9 @@ namespace Systems.Tree
             var entityManager = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
 
             var newTree = entityManager.Instantiate(global::World.SimulationResources.TreePrefab);
-
+            
+            entityManager.AddComponentData(newTree, new TreeTag());
+            
             entityManager.SetComponentData(newTree, new Translation
             {
                 Value = randomPos
@@ -40,7 +42,9 @@ namespace Systems.Tree
 
         private static Vector3 GetRandomPosition()
         {
-            var randomPos = UnityEngine.Random.insideUnitSphere * global::World.GroundDimensions / 2;
+            const int groundBorderOffset = 20;
+            
+            var randomPos = UnityEngine.Random.insideUnitSphere * (global::World.GroundDimensions - groundBorderOffset) / 2;
             randomPos = new Vector3(Mathf.Round(randomPos.x), 0, Mathf.Round(randomPos.z));
             
             return randomPos;
@@ -71,6 +75,8 @@ namespace Systems.Tree
             var entityManager = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
             
             var root = entityManager.Instantiate(global::World.SimulationResources.TreeCellPrefab);
+            
+            entityManager.AddComponentData(root, new TreeCellTag());
             
             entityManager.GetBuffer<TreeCellsComponent>(tree).Add(root);
             

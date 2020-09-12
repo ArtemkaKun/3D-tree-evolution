@@ -5,22 +5,24 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Random = System.Random;
 
+[AlwaysUpdateSystem]
 public class WorldSystem : ComponentSystem
 {
     protected override void OnUpdate()
     {
-        if (global::World.SimulationStatus.WorldAge >= 10000) return;
         if (!global::World.SimulationStatus.IsSimulationRun) return;
+        if (global::World.SimulationStatus.WorldAge >= 10000) return;
         
         ProceedTrees();
-        
+
         global::World.IncreaseWorldAge();
     }
 
     private void ProceedTrees()
     {
-        Entities.ForEach((Entity tree, ref TreeComponent treeData) =>
+        Entities.ForEach((Entity tree, ref TreeTag _, ref TreeComponent treeData) =>
         {
             ++treeData.TreeAge;
 
@@ -29,7 +31,7 @@ public class WorldSystem : ComponentSystem
                 DestroyTree(ref tree);
                 return;
             }
-            
+
             TreeEnergyCalc(ref tree, ref treeData);
 
             if (treeData.TreeEnergy <= 0)
@@ -51,22 +53,22 @@ public class WorldSystem : ComponentSystem
     {
         foreach (var cell in EntityManager.GetBuffer<TreeCellsComponent>(tree))
         {
-            if (EntityManager.GetComponentData<TreeCellComponent>(cell.Value).IsSeed)
-            {
-                if (new Random().Next(0, 100) <= 5)
-                {
-                    var newGene = Mutate(ref tree);
-                    
-                    IncreaseGeneration();
-                }
-                //TODO Grow new tree
-                continue;
-            }
-            
-            EntityManager.DestroyEntity(cell.Value);
+            // if (EntityManager.GetComponentData<TreeCellComponent>(cell.Value).IsSeed)
+            // {
+            //     if (new Random().Next(0, 100) <= 5)
+            //     {
+            //         var newGene = Mutate(ref tree);
+            //         
+            //         IncreaseGeneration();
+            //     }
+            //     //TODO Grow new tree
+            //     continue;
+            // }
+        
+            EntityManager.AddComponentData(cell.Value, new DeleteTag());
         }
         
-        EntityManager.DestroyEntity(tree);
+        EntityManager.AddComponentData(tree, new DeleteTag());
     }
 
     private GrowGenes Mutate(ref Entity tree)
@@ -87,36 +89,36 @@ public class WorldSystem : ComponentSystem
         };
 
         job.Schedule().Complete();
-        
+
         var treeGene = EntityManager.GetBuffer<TreeGenesComponent>(tree)[geneToMutate[0]].Value;
-        
+
         switch (directionToMutate[0])
         {
             case 0:
                 treeGene.Up = newGene[0];
                 break;
-            
+
             case 1:
                 treeGene.Down = newGene[0];
                 break;
-            
+
             case 2:
                 treeGene.Forward = newGene[0];
                 break;
-            
+
             case 3:
                 treeGene.Back = newGene[0];
                 break;
-            
+
             case 4:
                 treeGene.Left = newGene[0];
                 break;
-            
+
             case 5:
                 treeGene.Right = newGene[0];
                 break;
         }
-        
+
         //Test buffer assing
         // EntityManager.GetBuffer<TreeGenesComponent>(tree).Insert(geneToMutate[0], new TreeGenesComponent{Value = treeGenesComponent});
         // var a = EntityManager.GetBuffer<TreeGenesComponent>(tree)[geneToMutate[0]].Value;
@@ -142,7 +144,7 @@ public class WorldSystem : ComponentSystem
             var random = new Unity.Mathematics.Random(Seed);
 
             var randomEdge = GenesCount * 2;
-            
+
             GeneToMutate[0] = random.NextInt(GenesCount);
             DirectionToMutate[0] = random.NextInt(6);
             NewGene[0] = random.NextInt(randomEdge);
@@ -160,10 +162,12 @@ public class WorldSystem : ComponentSystem
     private void TreeEnergyCalc(ref Entity tree, ref TreeComponent treeData)
     {
         treeData.TreeEnergy = 0;
-        
+
         foreach (var cell in EntityManager.GetBuffer<TreeCellsComponent>(tree))
         {
-            treeData.TreeEnergy += EntityManager.GetComponentData<TreeCellComponent>(cell.Value).Energy; //TODO Set actual energy calculation!
+            treeData.TreeEnergy +=
+                EntityManager.GetComponentData<TreeCellComponent>(cell.Value)
+                    .Energy; //TODO Set actual energy calculation!
         }
     }
 }
