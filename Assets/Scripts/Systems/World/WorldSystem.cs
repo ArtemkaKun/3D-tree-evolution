@@ -16,8 +16,6 @@ public class WorldSystem : ComponentSystem
         if (global::World.SimulationStatus.WorldAge >= 10000) return;
         
         ProceedTrees();
-
-        global::World.IncreaseWorldAge();
     }
 
     private void ProceedTrees()
@@ -37,15 +35,8 @@ public class WorldSystem : ComponentSystem
             if (treeData.TreeEnergy <= 0)
             {
                 DestroyTree(ref tree);
-                return;
             }
             
-            //     if (buffer_tree.Count > 0)
-            //     {
-            //         await Task.WhenAll(buffer_tree.Select(x => x.GetComponent<CellController>().CellMainLoop())
-            //             .ToArray());
-            //     }
-            // }
         });
     }
 
@@ -166,8 +157,7 @@ public class WorldSystem : ComponentSystem
         foreach (var cell in EntityManager.GetBuffer<TreeCellsComponent>(tree))
         {
             treeData.TreeEnergy +=
-                EntityManager.GetComponentData<TreeCellComponent>(cell.Value)
-                    .Energy; //TODO Set actual energy calculation!
+                EntityManager.GetComponentData<TreeCellComponent>(cell.Value).Energy;
         }
     }
 }
