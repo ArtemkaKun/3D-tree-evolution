@@ -87,6 +87,7 @@ namespace Systems.Tree
 
             entityManager.SetComponentData(root, new TreeCellComponent
             {
+                ParentTree = tree,
                 IsSeed = true,
                 Energy = global::World.SimulationConstants.StartSeedEnergy,
                 Genes = entityManager.GetBuffer<TreeGenesComponent>(tree)[0]
