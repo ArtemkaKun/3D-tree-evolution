@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Systems;
+using Systems.World;
 using Components.Tree;
 using Components.TreeCell;
 using Unity.Burst;
@@ -9,19 +9,22 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Physics;
 using Unity.Physics.Systems;
-using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using Random = System.Random;
 using RaycastHit = Unity.Physics.RaycastHit;
 
-//[UpdateAfter(typeof(TreeGarbageCollector))]
+[UpdateBefore(typeof(NewTreeGrower))]
 public class WorldSystem : ComponentSystem
 {
     private const float RayLength = 3f;
 
     private CollisionFilter _groundCollisionFilter;
 
+    private List<(Entity, GrowGenes)> _cellToSeed;
+
+    private BuildPhysicsWorld _buildPhysicsWorld;
+    
     protected override void OnCreate()
     {
         base.OnCreate();
@@ -32,6 +35,8 @@ public class WorldSystem : ComponentSystem
             CollidesWith = 1u,
             GroupIndex = 0
         };
+        
+        _buildPhysicsWorld = Unity.Entities.World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BuildPhysicsWorld>();
     }
 
     protected override void OnUpdate()
@@ -39,10 +44,29 @@ public class WorldSystem : ComponentSystem
         if (!global::World.SimulationStatus.IsSimulationRun) return;
         if (global::World.SimulationStatus.WorldAge >= 10000) return;
         
+        _cellToSeed = new List<(Entity, GrowGenes)>();
+        
         ProceedTrees();
 
         var entitiesToQuery = EntityManager.CreateEntityQuery(typeof(DeleteTag));
         EntityManager.DestroyEntity(entitiesToQuery);
+
+        foreach (var (entity, growGenes) in _cellToSeed)
+        {
+            EntityManager.AddComponent<NewSeedTag>(entity);
+            
+            EntityManager.SetComponentData(entity, new TreeCellComponent
+            {
+                Genes = growGenes
+            });
+            
+            EntityManager.SetComponentData(entity, new PhysicsGravityFactor
+            {
+                Value = 1
+            });
+        }
+        
+        ProceedTreeCells();
         
         global::World.IncreaseWorldAge();
     }
@@ -66,28 +90,29 @@ public class WorldSystem : ComponentSystem
                 DestroyTree(ref tree);
                 return;
             }
-
-            ProceedTreeCells(ref tree);
         });
     }
 
     private void DestroyTree(ref Entity tree)
     {
         var cellsToDestroy = new List<Entity>();
-        
+
         foreach (var cell in EntityManager.GetBuffer<TreeCellsComponent>(tree))
         {
-            // if (EntityManager.GetComponentData<TreeCellComponent>(cell.Value).IsSeed)
-            // {
-            //     if (new Random().Next(0, 100) <= 5)
-            //     {
-            //         var newGene = Mutate(ref tree);
-            //         
-            //         IncreaseGeneration();
-            //     }
-            //     //TODO Grow new tree
-            //     continue;
-            // }
+            var cellData = EntityManager.GetComponentData<TreeCellComponent>(cell.Value);
+            if (cellData.IsSeed)
+            {
+                var cellToSeedData = (cell.Value, cellData.Genes);
+                
+                if (new Random().Next(0, 100) <= 5)
+                {
+                    cellToSeedData.Genes = Mutate(ref tree);
+                    IncreaseGeneration();
+                }
+                
+                _cellToSeed.Add(cellToSeedData);
+                continue;
+            }
             
             cellsToDestroy.Add(cell.Value);
         }
@@ -96,8 +121,9 @@ public class WorldSystem : ComponentSystem
         {
             EntityManager.AddComponentData(cell, new DeleteTag());
         }
-        
+
         EntityManager.AddComponentData(tree, new DeleteTag());
+        DecreaseForestSize();
     }
 
     private GrowGenes Mutate(ref Entity tree)
@@ -148,10 +174,6 @@ public class WorldSystem : ComponentSystem
                 break;
         }
 
-        //Test buffer assing
-        // EntityManager.GetBuffer<TreeGenesComponent>(tree).Insert(geneToMutate[0], new TreeGenesComponent{Value = treeGenesComponent});
-        // var a = EntityManager.GetBuffer<TreeGenesComponent>(tree)[geneToMutate[0]].Value;
-
         geneToMutate.Dispose();
         directionToMutate.Dispose();
         newGene.Dispose();
@@ -185,8 +207,16 @@ public class WorldSystem : ComponentSystem
         var simulationStatus = global::World.SimulationStatus;
         simulationStatus.TreeGeneration += 1;
         global::World.SimulationStatus = simulationStatus;
+        global::World.OnTreeGenerationChange?.Invoke();
     }
-
+    
+    private static void DecreaseForestSize()
+    {
+        var simulationStatus = global::World.SimulationStatus;
+        simulationStatus.ForestSize -= 1;
+        global::World.SimulationStatus = simulationStatus;
+        global::World.OnForestSizeChange?.Invoke();
+    }
 
     private void TreeEnergyCalc(ref Entity tree, ref TreeComponent treeData)
     {
@@ -199,30 +229,27 @@ public class WorldSystem : ComponentSystem
         }
     }
 
-    private void ProceedTreeCells(ref Entity tree)
+    private void ProceedTreeCells()
     {
-        foreach (var cell in EntityManager.GetBuffer<TreeCellsComponent>(tree))
+        Entities.WithNone(typeof(NewSeedTag)).ForEach((ref TreeCellComponent cellData, ref Translation translation) =>
         {
-            var cellData = EntityManager.GetComponentData<TreeCellComponent>(cell.Value);
-            var translation = EntityManager.GetComponentData<Translation>(cell.Value);
-            
-            CellCalcEnergy(ref cellData, ref translation);
+            CellCalcEnergy(ref cellData, translation.Value);
 
-            if (cellData.Energy < 18 || !cellData.IsSeed) return;
+            if (cellData.Energy < 54 || !cellData.IsSeed) return;
 
             GrowNewCells(ref cellData, translation.Value);
-        }
+        });
     }
 
-    private void CellCalcEnergy(ref TreeCellComponent cellData, ref Translation translation)
+    private void CellCalcEnergy(ref TreeCellComponent cellData, Vector3 translation)
     {
         cellData.Energy -= global::World.SimulationConstants.CellEnergyUsage;
 
-        var sunLvl = GetSunLvl(translation.Value);
+        var sunLvl = GetSunLvl(translation);
 
         if (sunLvl == 0) return;
 
-        cellData.Energy += sunLvl * Mathf.RoundToInt(translation.Value.y + 6);
+        cellData.Energy += sunLvl * Mathf.RoundToInt(translation.y + 6);
     }
 
     private int GetSunLvl(Vector3 position)
@@ -267,23 +294,26 @@ public class WorldSystem : ComponentSystem
 
         foreach (var (geneValue, growDirection) in growPairs)
         {
-            if (cellData.Energy < 18) return;
-            if (geneValue >= global::World.SimulationConstants.TreeGenesCount) return;
-            if (IsSpaceOccupied(growDirection, position)) return;
-
-            cellData.Energy -= 18;
+            if (geneValue >= global::World.SimulationConstants.TreeGenesCount) continue;
+            if (IsSpaceOccupied(growDirection, position)) continue;
 
             GrowCell(ref cellData, growDirection + position, geneValue);
+            cellData.IsSeed = false;
         }
     }
 
     private bool IsSpaceOccupied(Vector3 direction, Vector3 position)
     {
-        var ray = CastRay(direction, position);
-
-        var physicWorld = Unity.Entities.World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BuildPhysicsWorld>();
-        var collisionWorld = physicWorld.PhysicsWorld.CollisionWorld;
-
+        var offsetValue = direction / 1.8f;
+        var ray = new RaycastInput
+        {
+            Start = position + offsetValue,
+            End = position + direction + offsetValue,
+            Filter = _groundCollisionFilter
+        };
+        
+        var collisionWorld = _buildPhysicsWorld.PhysicsWorld.CollisionWorld;
+        
         return collisionWorld.CastRay(ray, out _);
     }
 
@@ -311,7 +341,9 @@ public class WorldSystem : ComponentSystem
             Genes = entityManager.GetBuffer<TreeGenesComponent>(cellData.ParentTree)[geneValue]
         });
 
-        cellData.IsSeed = false;
-        //gameObject.GetComponent<Renderer>().material = _woodMaterial;
+        // entityManager.SetSharedComponentData(newCell, new RenderMesh
+        // {
+        //     material = global::World.SimulationResources.TreeMaterial
+        // });
     }
 }
